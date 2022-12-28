@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 group 'org.example'
@@ -13,6 +14,10 @@ dependencies {
     implementation 'io.dropwizard:dropwizard-core:2.1.4'
 }
 
+project.ext {
+    mainClass = 'org.example.HelloWorldApplication'
+}
+
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
@@ -20,4 +25,13 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+build.finalizedBy shadowJar
+shadowJar {
+    mergeServiceFiles()
+    exclude 'META-INF/*.DSA', 'META-INF/*.RSA', 'META-INF/*.SF'
+    manifest {
+        attributes 'Main-Class': mainClass
+    }
 }
