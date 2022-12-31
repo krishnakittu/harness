@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     implementation 'io.dropwizard:dropwizard-core:2.1.4'
+    implementation 'com.jcraft:jsch:0.1.55'
 }
 
 project.ext {

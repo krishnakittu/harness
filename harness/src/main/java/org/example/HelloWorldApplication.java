@@ -1,14 +1,12 @@
 package org.example;
 
+import com.google.common.io.Resources;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import io.dropwizard.Application;
-import io.dropwizard.Configuration;
 import io.dropwizard.setup.Environment;
 import org.example.config.HelloWorldConfiguration;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 
 public class HelloWorldApplication extends Application<HelloWorldConfiguration> {
 
@@ -18,20 +16,32 @@ public class HelloWorldApplication extends Application<HelloWorldConfiguration> 
     }
     @Override
     public void run(HelloWorldConfiguration configuration, Environment environment) throws Exception {
-        File directory = new File("/app/files");
-        File directory1 =  new File(directory.getPath()+File.separator+"files");
-        System.out.println("Hello World:-->" +directory.exists());
-        System.out.println("Hello World:-->" +directory1.exists());
-        System.out.println("Hello World:-->" +directory1.mkdirs());
-        System.out.println("Hello World:-->" +directory1.getPath());
+        JSch jsch = new JSch();
+        JSch.setLogger(new com.jcraft.jsch.Logger() {
+            @Override
+            public boolean isEnabled(int level) {
+                return true;
+            }
 
-            FileOutputStream fileOut = new FileOutputStream(directory1+"/hello.ser", true);
-            OutputStreamWriter out = new OutputStreamWriter(fileOut, StandardCharsets.UTF_8);
-            StringBuilder builder = new StringBuilder();
-            String sequenceNo = "hello";
+            @Override
+            public void log(int level, String message) {
+                System.out.println("Debug purpose :"+ message);
+            }
+        });
 
-            out.write(builder.toString());
-            out.close();
-        System.out.println("Hello World:-->" +configuration.getGreeting());
+        jsch.addIdentity(configuration.getFtpConfiguration().getPrivateKeyPath());
+        Session session = jsch.getSession(
+                configuration.getFtpConfiguration().getUserName(),
+                configuration.getFtpConfiguration().getHostName(),
+                configuration.getFtpConfiguration().getPort());
+        java.util.Properties config = new java.util.Properties();
+        config.put("StrictHostKeyChecking", "no");
+
+        session.setConfig(config);
+        session.connect();
+
+        ChannelSftp sftp = (ChannelSftp) session.openChannel("sftp");
+        System.out.println("Connection Established");
+
     }
 }
